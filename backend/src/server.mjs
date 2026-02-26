@@ -67,6 +67,33 @@ const copyHeaders = (upstreamHeaders, res, targetOrigin) => {
 
 const readBody = async (response) => Buffer.from(await response.arrayBuffer());
 
+
+const DEFAULT_TARGET_URL = new URL(DEFAULT_TARGET);
+
+const handleDefaultPathProxy = async (req, res) => {
+  try {
+    const requestUrl = new URL(req.url ?? '/', 'http://localhost');
+    const target = new URL(requestUrl.pathname + requestUrl.search, DEFAULT_TARGET_URL);
+    const upstream = await fetch(target, {
+      method: req.method,
+      headers: {
+        'user-agent': req.headers['user-agent'] ?? 'oldredditpwa-proxy',
+        accept: req.headers.accept ?? '*/*'
+      },
+      redirect: 'manual'
+    });
+
+    copyHeaders(upstream.headers, res, target.origin);
+    const body = await readBody(upstream);
+    res.statusCode = upstream.status;
+    res.end(body);
+  } catch (error) {
+    res.statusCode = 400;
+    res.setHeader('content-type', 'application/json');
+    res.end(JSON.stringify({ error: 'Path proxy request failed.', details: error instanceof Error ? error.message : 'Unknown error' }));
+  }
+};
+
 const handleProxy = async (req, res) => {
   const rawTarget = req.url.replace(/^\/proxy\/?/, '');
 
@@ -119,8 +146,22 @@ export const createProxyServer = () =>
       return;
     }
 
+    if (req.method === 'OPTIONS') {
+      res.statusCode = 204;
+      res.setHeader('access-control-allow-origin', '*');
+      res.setHeader('access-control-allow-methods', 'GET,POST,OPTIONS');
+      res.setHeader('access-control-allow-headers', 'content-type');
+      res.end();
+      return;
+    }
+
     if (url.startsWith('/proxy')) {
       await handleProxy(req, res);
+      return;
+    }
+
+    if (url.startsWith('/web/')) {
+      await handleDefaultPathProxy(req, res);
       return;
     }
 

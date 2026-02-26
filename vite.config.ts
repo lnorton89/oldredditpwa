@@ -6,7 +6,8 @@ export default defineConfig({
   server: {
     proxy: {
       '/proxy': 'http://localhost:8080',
-      '/healthz': 'http://localhost:8080'
+      '/healthz': 'http://localhost:8080',
+      '/web': 'http://localhost:8080'
     }
   },
   plugins: [

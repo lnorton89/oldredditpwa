@@ -9,7 +9,7 @@ import {
   LinearProgress,
   Typography
 } from '@mui/material';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 type RedditFrameProps = {
   src: string;
@@ -20,18 +20,22 @@ const FRAME_TIMEOUT_MS = 7000;
 const RedditFrame = ({ src }: RedditFrameProps) => {
   const [loading, setLoading] = useState(true);
   const [timedOut, setTimedOut] = useState(false);
+  const timeoutRef = useRef<number | null>(null);
 
   useEffect(() => {
     setLoading(true);
     setTimedOut(false);
 
-    const timeoutId = window.setTimeout(() => {
+    timeoutRef.current = window.setTimeout(() => {
       setTimedOut(true);
       setLoading(false);
     }, FRAME_TIMEOUT_MS);
 
     return () => {
-      window.clearTimeout(timeoutId);
+      if (timeoutRef.current !== null) {
+        window.clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
+      }
     };
   }, [src]);
 
@@ -60,10 +64,13 @@ const RedditFrame = ({ src }: RedditFrameProps) => {
       <Box
         component="iframe"
         onLoad={() => {
+          if (timeoutRef.current !== null) {
+            window.clearTimeout(timeoutRef.current);
+            timeoutRef.current = null;
+          }
           setLoading(false);
           setTimedOut(false);
         }}
-        sandbox="allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox"
         src={src}
         sx={{ border: 'none', height: '100%', overflow: 'auto', width: '100%' }}
         title="Old Reddit"
