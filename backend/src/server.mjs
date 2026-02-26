@@ -11,6 +11,8 @@ const HOP_BY_HOP_HEADERS = new Set([
   'upgrade'
 ]);
 
+const NORMALIZE_RESPONSE_HEADERS = new Set(['content-encoding', 'content-length']);
+
 const BLOCKING_HEADERS = new Set(['x-frame-options', 'content-security-policy']);
 
 const DEFAULT_TARGET = 'https://old.reddit.com';
@@ -45,7 +47,7 @@ const copyHeaders = (upstreamHeaders, res, targetOrigin) => {
   for (const [header, value] of upstreamHeaders.entries()) {
     const lower = header.toLowerCase();
 
-    if (HOP_BY_HOP_HEADERS.has(lower) || BLOCKING_HEADERS.has(lower)) {
+    if (HOP_BY_HOP_HEADERS.has(lower) || BLOCKING_HEADERS.has(lower) || NORMALIZE_RESPONSE_HEADERS.has(lower)) {
       continue;
     }
 

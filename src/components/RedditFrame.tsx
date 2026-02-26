@@ -63,7 +63,7 @@ const RedditFrame = ({ src }: RedditFrameProps) => {
           setLoading(false);
           setTimedOut(false);
         }}
-        sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox"
+        sandbox="allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox"
         src={src}
         sx={{ border: 'none', height: '100%', overflow: 'auto', width: '100%' }}
         title="Old Reddit"

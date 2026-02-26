@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import http from 'node:http';
 import test from 'node:test';
+import zlib from 'node:zlib';
 
 import { createProxyServer } from '../src/server.mjs';
 
@@ -63,6 +64,32 @@ test('proxy rewrites redirect location to proxied path', async () => {
 
   assert.equal(response.status, 302);
   assert.match(response.headers.get('location') ?? '', /\/proxy\//);
+
+  proxy.close();
+  upstream.close();
+});
+
+
+test('proxy normalizes content headers to avoid decoding mismatch', async () => {
+  const upstream = http.createServer((req, res) => {
+    res.statusCode = 200;
+    const body = zlib.gzipSync('plain-body');
+    res.setHeader('content-type', 'text/plain');
+    res.setHeader('content-encoding', 'gzip');
+    res.setHeader('content-length', String(body.length));
+    res.end(body);
+  });
+
+  const upstreamBase = await listen(upstream);
+  const proxy = createProxyServer();
+  const proxyBase = await listen(proxy);
+
+  const response = await fetch(`${proxyBase}/proxy/${upstreamBase}/encoding`);
+  const body = await response.text();
+
+  assert.equal(response.status, 200);
+  assert.equal(response.headers.get('content-encoding'), null);
+  assert.equal(body, 'plain-body');
 
   proxy.close();
   upstream.close();
