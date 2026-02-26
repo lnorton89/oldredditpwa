@@ -53,3 +53,9 @@ The generated production assets are output to `dist/`.
 1. Open the deployed app in Chrome on Android.
 2. Tap the browser menu and choose **Add to Home screen** (or **Install app**).
 3. Launch it from the home screen for standalone app mode.
+
+## Material reader mode
+
+The app now renders Reddit data using native MUI cards/icons via `src/components/RedditReader.tsx`.
+View-specific layout behavior is configured through `configureView()` in `src/views/viewConfig.ts` (e.g., `home`, `post`).
+The backend exposes `/api/reddit` to normalize Reddit JSON into frontend-friendly payloads.

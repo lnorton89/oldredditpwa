@@ -67,22 +67,24 @@ const copyHeaders = (upstreamHeaders, res, targetOrigin) => {
 
 const readBody = async (response) => Buffer.from(await response.arrayBuffer());
 
-
 const DEFAULT_TARGET_URL = new URL(DEFAULT_TARGET);
 const DEV_TRACKING_COOKIE = 'loid=000000000000000000.2.0; Path=/; SameSite=Lax';
+
+const fetchFromUpstream = async (target, req) =>
+  fetch(target, {
+    method: req.method,
+    headers: {
+      'user-agent': req.headers['user-agent'] ?? 'oldredditpwa-proxy',
+      accept: req.headers.accept ?? '*/*'
+    },
+    redirect: 'manual'
+  });
 
 const handleDefaultPathProxy = async (req, res) => {
   try {
     const requestUrl = new URL(req.url ?? '/', 'http://localhost');
     const target = new URL(requestUrl.pathname + requestUrl.search, DEFAULT_TARGET_URL);
-    const upstream = await fetch(target, {
-      method: req.method,
-      headers: {
-        'user-agent': req.headers['user-agent'] ?? 'oldredditpwa-proxy',
-        accept: req.headers.accept ?? '*/*'
-      },
-      redirect: 'manual'
-    });
+    const upstream = await fetchFromUpstream(target, req);
 
     copyHeaders(upstream.headers, res, target.origin);
     const body = await readBody(upstream);
@@ -91,7 +93,114 @@ const handleDefaultPathProxy = async (req, res) => {
   } catch (error) {
     res.statusCode = 400;
     res.setHeader('content-type', 'application/json');
-    res.end(JSON.stringify({ error: 'Path proxy request failed.', details: error instanceof Error ? error.message : 'Unknown error' }));
+    res.end(
+      JSON.stringify({
+        error: 'Path proxy request failed.',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      })
+    );
+  }
+};
+
+const getView = (pathname, forced) => {
+  if (forced === 'home' || forced === 'post') {
+    return forced;
+  }
+
+  return pathname.includes('/comments/') ? 'post' : 'home';
+};
+
+const appendJsonPath = (target) => {
+  const next = new URL(target.toString());
+
+  if (next.pathname.endsWith('.json')) {
+    return next;
+  }
+
+  next.pathname = `${next.pathname.replace(/\/$/, '')}.json`;
+  return next;
+};
+
+const mapListingPosts = (children) =>
+  children
+    .map(({ data }) => ({
+      id: data.id,
+      title: data.title,
+      subreddit: data.subreddit_name_prefixed,
+      author: data.author,
+      score: data.score,
+      comments: data.num_comments,
+      thumbnail: data.thumbnail && data.thumbnail.startsWith('http') ? data.thumbnail : null,
+      permalink: `https://old.reddit.com${data.permalink}`
+    }))
+    .filter((post) => Boolean(post.id));
+
+const mapPostPayload = (payload) => {
+  const postData = payload?.[0]?.data?.children?.[0]?.data;
+  const comments = payload?.[1]?.data?.children ?? [];
+
+  return {
+    id: postData?.id ?? 'unknown',
+    title: postData?.title ?? 'Untitled',
+    body: postData?.selftext ?? '',
+    subreddit: postData?.subreddit_name_prefixed ?? '',
+    author: postData?.author ?? '',
+    score: postData?.score ?? 0,
+    permalink: postData?.permalink ? `https://old.reddit.com${postData.permalink}` : null,
+    comments: comments
+      .filter((entry) => entry.kind === 't1' && entry.data)
+      .slice(0, 30)
+      .map((entry) => ({
+        id: entry.data.id,
+        author: entry.data.author,
+        body: entry.data.body ?? '',
+        score: entry.data.score ?? 0
+      }))
+  };
+};
+
+const handleApiReddit = async (req, res) => {
+  try {
+    const requestUrl = new URL(req.url ?? '/', 'http://localhost');
+    const targetParam = requestUrl.searchParams.get('target') ?? DEFAULT_TARGET;
+    const target = normalizeTarget(targetParam);
+    const view = getView(target.pathname, requestUrl.searchParams.get('view'));
+    const jsonTarget = appendJsonPath(target);
+
+    const upstream = await fetch(jsonTarget, {
+      headers: {
+        'user-agent': req.headers['user-agent'] ?? 'oldredditpwa-api',
+        accept: 'application/json'
+      }
+    });
+
+    const json = await upstream.json();
+
+    const payload =
+      view === 'post'
+        ? mapPostPayload(json)
+        : {
+          posts: mapListingPosts(json?.data?.children ?? [])
+        };
+
+    res.statusCode = 200;
+    res.setHeader('content-type', 'application/json');
+    res.end(
+      JSON.stringify({
+        view,
+        target: target.toString(),
+        payload
+      })
+    );
+  } catch (error) {
+    res.statusCode = 400;
+    res.setHeader('content-type', 'application/json');
+    res.end(
+      JSON.stringify({
+        error: 'Failed to build reddit view payload.',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      })
+    );
   }
 };
 
@@ -100,14 +209,7 @@ const handleProxy = async (req, res) => {
 
   try {
     const target = normalizeTarget(rawTarget);
-    const upstream = await fetch(target, {
-      method: req.method,
-      headers: {
-        'user-agent': req.headers['user-agent'] ?? 'oldredditpwa-proxy',
-        accept: req.headers.accept ?? '*/*'
-      },
-      redirect: 'manual'
-    });
+    const upstream = await fetchFromUpstream(target, req);
 
     copyHeaders(upstream.headers, res, target.origin);
 
@@ -154,6 +256,11 @@ export const createProxyServer = () =>
       res.setHeader('access-control-allow-methods', 'GET,POST,OPTIONS');
       res.setHeader('access-control-allow-headers', 'content-type');
       res.end();
+      return;
+    }
+
+    if (url.startsWith('/api/reddit')) {
+      await handleApiReddit(req, res);
       return;
     }
 

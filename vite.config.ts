@@ -1,54 +1,55 @@
-import { defineConfig } from 'vite';
-import react from '@vitejs/plugin-react';
-import { VitePWA } from 'vite-plugin-pwa';
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
+import { VitePWA } from "vite-plugin-pwa";
 
 export default defineConfig({
   server: {
     proxy: {
-      '/proxy': 'http://localhost:8080',
-      '/healthz': 'http://localhost:8080',
-      '/web': 'http://localhost:8080'
-    }
+      "/api": "http://localhost:8080",
+      "/proxy": "http://localhost:8080",
+      "/healthz": "http://localhost:8080",
+      "/web": "http://localhost:8080",
+    },
   },
   plugins: [
     react(),
     VitePWA({
-      registerType: 'autoUpdate',
+      registerType: "autoUpdate",
       manifest: {
-        name: 'Reddit PWA',
-        short_name: 'Reddit',
-        theme_color: '#FF4500',
-        background_color: '#FFFFFF',
-        display: 'standalone',
-        orientation: 'portrait',
-        scope: '/',
-        start_url: '/',
+        name: "Reddit PWA",
+        short_name: "Reddit",
+        theme_color: "#FF4500",
+        background_color: "#FFFFFF",
+        display: "standalone",
+        orientation: "portrait",
+        scope: "/",
+        start_url: "/",
         icons: [
           {
-            src: '/icons/icon-192.svg',
-            sizes: '192x192',
-            type: 'image/svg+xml'
+            src: "/icons/icon-192.svg",
+            sizes: "192x192",
+            type: "image/svg+xml",
           },
           {
-            src: '/icons/icon-512.svg',
-            sizes: '512x512',
-            type: 'image/svg+xml',
-            purpose: 'any maskable'
-          }
-        ]
+            src: "/icons/icon-512.svg",
+            sizes: "512x512",
+            type: "image/svg+xml",
+            purpose: "any maskable",
+          },
+        ],
       },
       workbox: {
-        navigateFallback: 'index.html',
+        navigateFallback: "index.html",
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/old\.reddit\.com\/.*$/,
-            handler: 'NetworkFirst',
+            handler: "NetworkFirst",
             options: {
-              cacheName: 'reddit-runtime'
-            }
-          }
-        ]
-      }
-    })
-  ]
+              cacheName: "reddit-runtime",
+            },
+          },
+        ],
+      },
+    }),
+  ],
 });

@@ -94,9 +94,6 @@ test('proxy normalizes content headers to avoid decoding mismatch', async () => 
   proxy.close();
   upstream.close();
 });
-<<<<<<< HEAD
-=======
-
 
 test('web log endpoint is acknowledged to suppress noisy client errors', async () => {
   const proxy = createProxyServer();
@@ -112,4 +109,54 @@ test('web log endpoint is acknowledged to suppress noisy client errors', async (
 
   proxy.close();
 });
+<<<<<<< HEAD
+
+test('api/reddit returns mapped home payload from reddit listing json', async () => {
+  const upstream = http.createServer((req, res) => {
+    if (req.url === '/.json') {
+      res.statusCode = 200;
+      res.setHeader('content-type', 'application/json');
+      res.end(
+        JSON.stringify({
+          data: {
+            children: [
+              {
+                data: {
+                  id: 'abc123',
+                  title: 'Hello Reddit',
+                  subreddit_name_prefixed: 'r/test',
+                  author: 'alice',
+                  score: 12,
+                  num_comments: 3,
+                  thumbnail: 'https://example.com/thumb.png',
+                  permalink: '/r/test/comments/abc123/hello_reddit/'
+                }
+              }
+            ]
+          }
+        })
+      );
+      return;
+    }
+
+    res.statusCode = 404;
+    res.end('missing');
+  });
+
+  const upstreamBase = await listen(upstream);
+  const proxy = createProxyServer();
+  const proxyBase = await listen(proxy);
+
+  const response = await fetch(`${proxyBase}/api/reddit?target=${encodeURIComponent(upstreamBase + '/')}`);
+  const body = await response.json();
+
+  assert.equal(response.status, 200);
+  assert.equal(body.view, 'home');
+  assert.equal(body.payload.posts[0].id, 'abc123');
+
+  proxy.close();
+  upstream.close();
+});
+=======
 >>>>>>> 64b8986c52c3a31389dd34379ed2f8abcd453a7b
+>>>>>>> master

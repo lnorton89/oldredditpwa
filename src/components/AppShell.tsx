@@ -2,7 +2,7 @@ import SettingsIcon from '@mui/icons-material/Settings';
 import { AppBar, Box, IconButton, Toolbar, Typography } from '@mui/material';
 import { useMemo, useState } from 'react';
 
-import RedditFrame from './RedditFrame';
+import RedditReader from './RedditReader';
 import SettingsDrawer from './SettingsDrawer';
 
 type AppShellProps = {
@@ -50,7 +50,7 @@ const AppShell = ({ baseUrl, darkMode, onUpdateBaseUrl, onUpdateDarkMode }: AppS
         </Toolbar>
       </AppBar>
       <Box sx={{ height: `calc(100vh - ${APP_BAR_HEIGHT}px)`, mt: `${APP_BAR_HEIGHT}px` }}>
-        <RedditFrame src={frameUrl} />
+        <RedditReader src={frameUrl} />
       </Box>
       <SettingsDrawer
         baseUrl={baseUrl}
