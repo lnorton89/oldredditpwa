@@ -69,10 +69,7 @@ const readBody = async (response) => Buffer.from(await response.arrayBuffer());
 
 
 const DEFAULT_TARGET_URL = new URL(DEFAULT_TARGET);
-<<<<<<< HEAD
-=======
 const DEV_TRACKING_COOKIE = 'loid=000000000000000000.2.0; Path=/; SameSite=Lax';
->>>>>>> 64b8986c52c3a31389dd34379ed2f8abcd453a7b
 
 const handleDefaultPathProxy = async (req, res) => {
   try {
@@ -120,10 +117,7 @@ const handleProxy = async (req, res) => {
     if (isHtmlResponse(contentType)) {
       const rewritten = rewriteHtml(body.toString('utf8'), target.origin);
       res.statusCode = upstream.status;
-<<<<<<< HEAD
-=======
       res.setHeader('set-cookie', DEV_TRACKING_COOKIE);
->>>>>>> 64b8986c52c3a31389dd34379ed2f8abcd453a7b
       res.setHeader('content-length', Buffer.byteLength(rewritten));
       res.end(rewritten);
       return;
@@ -168,8 +162,6 @@ export const createProxyServer = () =>
       return;
     }
 
-<<<<<<< HEAD
-=======
     if (url.startsWith('/web/log/')) {
       res.statusCode = 204;
       res.setHeader('access-control-allow-origin', '*');
@@ -177,7 +169,6 @@ export const createProxyServer = () =>
       return;
     }
 
->>>>>>> 64b8986c52c3a31389dd34379ed2f8abcd453a7b
     if (url.startsWith('/web/')) {
       await handleDefaultPathProxy(req, res);
       return;
