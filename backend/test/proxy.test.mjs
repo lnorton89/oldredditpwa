@@ -95,7 +95,6 @@ test('proxy normalizes content headers to avoid decoding mismatch', async () => 
   upstream.close();
 });
 
-
 test('web log endpoint is acknowledged to suppress noisy client errors', async () => {
   const proxy = createProxyServer();
   const proxyBase = await listen(proxy);
@@ -110,6 +109,7 @@ test('web log endpoint is acknowledged to suppress noisy client errors', async (
 
   proxy.close();
 });
+<<<<<<< HEAD
 
 test('api/reddit returns mapped home payload from reddit listing json', async () => {
   const upstream = http.createServer((req, res) => {
@@ -157,3 +157,6 @@ test('api/reddit returns mapped home payload from reddit listing json', async ()
   proxy.close();
   upstream.close();
 });
+=======
+>>>>>>> 64b8986c52c3a31389dd34379ed2f8abcd453a7b
+>>>>>>> master

@@ -180,8 +180,8 @@ const handleApiReddit = async (req, res) => {
       view === 'post'
         ? mapPostPayload(json)
         : {
-            posts: mapListingPosts(json?.data?.children ?? [])
-          };
+          posts: mapListingPosts(json?.data?.children ?? [])
+        };
 
     res.statusCode = 200;
     res.setHeader('content-type', 'application/json');

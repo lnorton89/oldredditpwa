@@ -54,7 +54,6 @@ The generated production assets are output to `dist/`.
 2. Tap the browser menu and choose **Add to Home screen** (or **Install app**).
 3. Launch it from the home screen for standalone app mode.
 
-
 ## Material reader mode
 
 The app now renders Reddit data using native MUI cards/icons via `src/components/RedditReader.tsx`.
