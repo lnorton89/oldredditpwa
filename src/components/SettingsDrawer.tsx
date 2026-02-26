@@ -36,7 +36,7 @@ const SettingsDrawer = ({
 
   const saveBaseUrl = () => {
     const trimmed = draftBaseUrl.trim();
-    onSaveBaseUrl(trimmed || 'https://old.reddit.com');
+    onSaveBaseUrl(trimmed || '/proxy/https://old.reddit.com');
   };
 
   return (

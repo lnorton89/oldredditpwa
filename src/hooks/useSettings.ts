@@ -7,7 +7,7 @@ export type Settings = {
 
 const SETTINGS_KEY = 'reddpwa_settings';
 const DEFAULT_SETTINGS: Settings = {
-  baseUrl: 'https://old.reddit.com',
+  baseUrl: '/proxy/https://old.reddit.com',
   darkMode: false
 };
 

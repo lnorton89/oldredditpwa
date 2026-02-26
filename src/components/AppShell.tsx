@@ -18,7 +18,11 @@ const normalizeBaseUrl = (url: string): string => {
   const trimmed = url.trim();
 
   if (!trimmed) {
-    return 'https://old.reddit.com';
+    return '/proxy/https://old.reddit.com';
+  }
+
+  if (trimmed.startsWith('/')) {
+    return trimmed;
   }
 
   if (!/^https?:\/\//i.test(trimmed)) {
