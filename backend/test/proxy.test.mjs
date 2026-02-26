@@ -94,3 +94,19 @@ test('proxy normalizes content headers to avoid decoding mismatch', async () => 
   proxy.close();
   upstream.close();
 });
+
+
+test('web log endpoint is acknowledged to suppress noisy client errors', async () => {
+  const proxy = createProxyServer();
+  const proxyBase = await listen(proxy);
+
+  const response = await fetch(`${proxyBase}/web/log/error.json`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ message: 'test' })
+  });
+
+  assert.equal(response.status, 204);
+
+  proxy.close();
+});
