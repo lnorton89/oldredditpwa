@@ -22,3 +22,9 @@ The generated production assets are output to `dist/`.
 1. Open the deployed app in Chrome on Android.
 2. Tap the browser menu and choose **Add to Home screen** (or **Install app**).
 3. Launch it from the home screen for standalone app mode.
+
+## Notes about old.reddit.com embedding
+
+`old.reddit.com` commonly sends `X-Frame-Options: sameorigin`, which prevents rendering inside an iframe in normal browsers.
+
+This app detects frame timeouts and shows a fallback action to open the configured URL in a regular tab.
